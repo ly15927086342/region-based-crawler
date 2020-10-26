@@ -3,6 +3,9 @@
 from chuzuSpider import *
 from queue import Queue
 import re
+import time
+import random
+import requests
 
 def next(arr,id,field):
 	print(id,len(arr))
@@ -15,7 +18,6 @@ def next(arr,id,field):
 # 主程序入口
 if __name__ == '__main__':
 	# region = ['hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian','xinzhouqu','hannan']
-	test = ['hannan','xinzhouqu']
-	field = ['title','price','unit','type','direction','decoration','community','subway','address','region','description']
-	# 每个区实例化一个爬虫，
+	test = ['hannan']
+	field = ['title','price','unit','type','area','direction','floor','decoration','community','subway','address','description']
 	next(test,0,field)

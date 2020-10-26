@@ -1,16 +1,11 @@
 #coding = 'utf-8'
 
-import requests
 import json
 from lxml import etree
 from bs4 import BeautifulSoup
-import time
-import random
 import math
-import threading
 import sqlite3
 import re
-from queue import Queue
 from spider import AbstractSpiderFrame
 
 '''
@@ -20,89 +15,73 @@ from spider import AbstractSpiderFrame
 class chuzuSpider(AbstractSpiderFrame):
 	def __init__(self, regions = [], fields = [], thread_num = 3):
 		super(chuzuSpider, self).__init__(regions,fields,thread_num)
-		self.headers = {
-		'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
-		}
-		self.Task = Queue()
-		self.finish = False
 
-	def getHtml(self,url):
-		time.sleep(1+random.random())
-		r = requests.get(url,headers=self.headers)
-		# print(r.apparent_encoding)
-		# r.encoding = r.apparent_encoding
-		if r.status_code == 200:
-			return r.text
+	# @parms{region}: self.regions[i]
+	# @return{childLink}：根据区域生成待爬取的主页链接
+	def getEntryFunc(self,region):
+		return 'http://wh.ganji.com/'+region+'/zufang/'
 
-	def getEntry(self):
-		print('---getEntry start---')
-		for region in self.regions:
-			self.entry.append('http://wh.ganji.com/'+region+'/zufang/')
-		print('---getEntry end---')
+	# @parms{url}: self.entry[i]
+	# @return{childLink}：self.entry[i]页获取的所有列表页的链接list
+	def getPagesFunc(self,url):
+		pg = []
+		res = self.getHtml(url)
+		soup = BeautifulSoup(res,'lxml')
+		page = soup.find_all(class_='pageBox')[1]
+		a = page.find_all('a')
+		maxP = int(a[len(a)-2].find('span').string)
+		for i in range(1,maxP+1):
+			pg.append(url+'pn'+str(i)+'/')
+		return pg
 
-	def getPages(self):
-		print('---getPages start---')
-		for url in self.entry:
-			res = self.getHtml(url)
-			soup = BeautifulSoup(res,'lxml')
-			page = soup.find_all(class_='pageBox')[1]
-			a = page.find_all('a')
-			maxP = int(a[len(a)-2].find('span').string)
-			for i in range(1,maxP+1):
-				self.pages.append(url+'pn'+str(i)+'/')
-		print('---getPages end---')
+	# @parms{url}: self.pages[i]
+	# @return{childLink}： self.pages[i]页所有待爬页面的链接list
+	def getLinkListFunc(self,url):
+		res = self.getHtml(url)
+		soup = BeautifulSoup(res,'lxml')
+		childLink = []
+		try:
+			domItem = soup.find_all(class_='ershoufang-list')
+			for dom in domItem:
+				link = dom.find(class_='title').find('a').get('href')
+				# //开头转http://
+				if(re.match(r'http:',link)==None):
+					link = 'http:'+link
+				# ?后面的参数都舍弃
+				link = link.split('?')[0]
+				childLink.append(link)
+		except:
+			print('err: '+url)
+		return childLink
 
-	def getLinkList(self):
-		while(not self.Task.empty()):
-			url = self.Task.get()
-			res = self.getHtml(url)
-			soup = BeautifulSoup(res,'lxml')
-			try:
-				domItem = soup.find_all(class_='ershoufang-list')
-				for dom in domItem:
-					link = dom.find(class_='title').find('a').get('href')
-					# //开头转http://
-					if(re.match(r'http:',link)==None):
-						link = 'http:'+link
-					# ?后面的参数都舍弃
-					link = link.split('?')[0]
-					self.links.append(link)
-				self.pages.pop()
-			except:
-				print('err: '+url)
-
-	def getLinks(self):
-		print('---getLinks start---')
-		self.Task.queue.clear()
-		# pages推入任务队列
-		for url in self.pages:
-			self.Task.put(url)
-		# 多线程运算
-		for i in range(0,self.thread_num):
-			t = threading.Thread(target=self.getLinkList)
-			t.start()
-		print('---getLinks end---')
-
-	def spideLinks(self):
-		while(not len(self.pages) == 0):
-			pass
-		print('链接总数：'+str(len(self.links)))
-
-		print('---spideLinks start---')
-
-		print('---spideLinks end---')
-		self.onFinish()
-
-	# 出发回调函数执行
-	def onFinish(self):
-		print('---'+self.regions[0]+'爬取完毕---')
-		self.next(self.callbackParms['arr'],self.callbackParms['id'],self.callbackParms['field'])
-
-	# 回调函数配置
-	def callback(self,cb,arr,id,field):
-		self.next = cb
-		self.callbackParms = {
-		'arr':arr,
-		'id':id,
-		'field':field
-		}
+	# @parms{url}: self.links[i]
+	# 详情页的爬取处理函数
+	def processLinksFunc(self,url):
+		res = self.getHtml(url)
+		soup = BeautifulSoup(res,'lxml')
+		try:
+			card_data = soup.find(class_='card-top')
+			title = card_data.find(class_='card-title').find('i').string.strip().replace(' ','')
+			price_warp = card_data.find(class_="price-wrap")
+			er_list = card_data.find(class_="er-list")
+			er_list_two = card_data.find(class_="er-list-two")
+			list_one = er_list.find_all(class_="f-fl")
+			list_two = er_list_two.find_all(class_="f-fl")
+			price = price_warp.find(class_="price").string.strip().replace(' ','')
+			unit = price_warp.find(class_="unit").string.strip().replace(' ','')
+			type = list_one[0].find(class_='content').string.strip().replace(' ','')
+			area = list_one[1].find(class_='content').string.strip().replace(' ','').replace('\xa0','')
+			direction = list_one[2].find(class_='content').string.strip().replace(' ','')
+			floor = list_one[3].find(class_='content').string.strip().replace(' ','')
+			decoration = list_one[4].find(class_='content').string.strip().replace(' ','')
+			community = list_two[0].find(class_='content').find('span').string.strip().replace(' ','')
+			subway = list_two[1].find(class_='content').string.strip().replace(' ','')
+			address = list_two[2].find(class_='content').string.strip().replace(' ','')
+			description = soup.find(class_='describe').find(class_='item').string.strip().replace(' ','')
+			loc = re.search(r'try{(.*?)}catch',res.replace(' ','').replace('\n','')).group(0).split(';')
+			bdlat = loc[1][19:-1]
+			bdlng = loc[2][19:-1]
+			record = [title,price,unit,type,area,direction,floor,decoration,community,subway,address,bdlat,bdlng,description]
+			print(record)
+		except:
+			print('err: '+url)
