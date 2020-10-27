@@ -15,7 +15,7 @@ if __name__ == '__main__':
 	field = ['title','price','unit','type','area','direction','floor','decoration','community','subway','address','bdlat','bdlng','description']
 	
 	# 爬取指定区域的页面
-	app = chuzuSpider(region,field,THREAD_MAX,DICT_PATH)
+	app = chuzuSpider(regions = region,fields = field,thread_num = THREAD_MAX,dict_path = DICT_PATH)
 	app.run()
 	
 	# 对爬取失败的文件重爬，和app.run()不能顺序执行，因为两个函数都是异步函数
