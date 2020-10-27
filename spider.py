@@ -161,11 +161,18 @@ class AbstractSpiderFrame(object):
 		try:
 			if(len(self.susList)>0):
 				hasHead = False
-				# 判断是否有头部
-				with open(self.dict_path+self.regions[self.id]+'_result.csv', 'r', newline='',encoding='utf-8') as csvfile:
-					reader = csv.reader(f)
-					hasHead = reader.line_num > 0 ? True:False
-					csvfile.close()
+				# 行数为0或报错表示无头部，需要写头
+				try:
+					with open(self.dict_path+self.regions[self.id]+'_result.csv', 'r', newline='',encoding='utf-8') as csvfile:
+						reader = csv.reader(csvfile)
+						length = 0
+						for row in reader:
+							length = length + 1
+						if(length>0):
+							hasHead = True
+						csvfile.close()
+				except:
+					pass
 				with open(self.dict_path+self.regions[self.id]+'_result.csv', 'a', newline='',encoding='utf-8') as csvfile:
 					writer_sus = csv.DictWriter(csvfile, fieldnames=self.fields)
 					if(not hasHead):
