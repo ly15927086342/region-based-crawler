@@ -35,7 +35,7 @@ class chuzuSpider(AbstractSpiderFrame):
 		return pg
 
 	# @parms{url}: self.pages[i]
-	# @return{childLink}： self.pages[i]页所有待爬页面的链接list
+	# @return{childLink/False}： self.pages[i]页所有待爬页面的链接list，如果页面异常，返回False
 	def getLinkListFunc(self,url):
 		res = self.getHtml(url)
 		soup = BeautifulSoup(res,'lxml')
@@ -50,9 +50,9 @@ class chuzuSpider(AbstractSpiderFrame):
 				# ?后面的参数都舍弃
 				link = link.split('?')[0]
 				childLink.append(link)
+			return childLink
 		except:
-			pass
-		return childLink
+			return False
 
 	# @parms{url}: self.links[i]
 	# @return{record}: 和self.fields顺序必须保持一致，返回一个list，该list会写入csv

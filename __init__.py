@@ -13,5 +13,11 @@ DICT_PATH = './result'
 if __name__ == '__main__':
 	region = ['xinzhouqu','hannan','hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian']
 	field = ['title','price','unit','type','area','direction','floor','decoration','community','subway','address','bdlat','bdlng','description']
+	
+	# 爬取指定区域的页面
 	app = chuzuSpider(region,field,THREAD_MAX,DICT_PATH)
 	app.run()
+	
+	# 对爬取失败的文件重爬，和app.run()不能顺序执行，因为两个函数都是异步函数
+	# appR = chuzuSpider([],field,THREAD_MAX,DICT_PATH)
+	# appR.reSpideFailLinks()

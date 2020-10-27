@@ -7,6 +7,7 @@ from queue import Queue
 import csv
 import logging
 import os
+import re
 
 '''
 采用模板方法模式，构建抽象爬虫框架类
@@ -82,7 +83,12 @@ class AbstractSpiderFrame(object):
 			url = self.Task.get()
 			# 用户重写该解析方法
 			res = self.getLinkListFunc(url)
-			if(len(res)==0):
+			if(res == False):
+				self.failList.append({
+					'type':'pages',
+					'region':self.regions[self.id],
+					'url':url
+					})
 				self.logger.warn('fail:' + url + ';type:pages')
 			else:
 				self.links.extend(res)
@@ -94,7 +100,6 @@ class AbstractSpiderFrame(object):
 		# pages推入任务队列
 		for url in self.pages:
 			self.Task.put(url)
-		self.links.clear()
 		# 多线程运算
 		for i in range(0,self.thread_num):
 			t = threading.Thread(target=self.getLinkList)
@@ -113,13 +118,15 @@ class AbstractSpiderFrame(object):
 				print('fail:'+url)
 				self.logger.warn('fail:' + url + ';type:links')
 			else:
+				print('sus:'+url)
 				field = dict()
 				for i in range(0,len(self.fields)):
 					field[self.fields[i]] = res[i]
 				self.susList.append(field)
 			self.links.pop()
 
-	def spideLinks(self):
+	# 爬取完毕的回调
+	def spideLinks(self,callback):
 		while(not len(self.pages) == 0):
 			pass
 		print('---getLinks end---')
@@ -138,7 +145,7 @@ class AbstractSpiderFrame(object):
 			pass
 		print('---spideLinks end---')
 		self.logger.info('spideLinks finish')
-		self.onFinish()
+		self.onFinish(callback)
 
 	def run(self):
 		if(self.id==len(self.regions)):
@@ -148,25 +155,38 @@ class AbstractSpiderFrame(object):
 		self.getEntry()
 		self.getPages()
 		self.getLinks()
-		self.spideLinks()
+		self.spideLinks(self.run)
 
 	def saveRes(self):
 		try:
-			with open(self.dict_path+self.regions[self.id]+'_result.csv', 'a', newline='',encoding='utf-8') as csvfile:
-				writer = csv.DictWriter(csvfile, fieldnames=self.fields)
-				writer.writeheader()
-				writer.writerows(self.susList)
-				csvfile.close()
-			with open(self.dict_path+self.regions[self.id]+'_fail.csv', 'w', newline='',encoding='utf-8') as failfile:
-				writer = csv.DictWriter(failfile, fieldnames=['type','region','url'])
-				writer.writeheader()
-				writer.writerows(self.failList)
-				failfile.close()
+			if(len(self.susList)>0):
+				hasHead = False
+				# 判断是否有头部
+				with open(self.dict_path+self.regions[self.id]+'_result.csv', 'r', newline='',encoding='utf-8') as csvfile:
+					reader = csv.reader(f)
+					hasHead = reader.line_num > 0 ? True:False
+					csvfile.close()
+				with open(self.dict_path+self.regions[self.id]+'_result.csv', 'a', newline='',encoding='utf-8') as csvfile:
+					writer_sus = csv.DictWriter(csvfile, fieldnames=self.fields)
+					if(not hasHead):
+						writer_sus.writeheader()
+					writer_sus.writerows(self.susList)
+					csvfile.close()
+			if(len(self.failList)>0):
+				with open(self.dict_path+self.regions[self.id]+'_fail.csv', 'w', newline='',encoding='utf-8') as failfile:
+					writer_fail = csv.DictWriter(failfile, fieldnames=['type','region','url'])
+					writer_fail.writeheader()
+					writer_fail.writerows(self.failList)
+					failfile.close()
+			# failList为空，则删除fail文件
+			else:
+				if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv')):
+					os.remove(self.dict_path+self.regions[self.id]+'_fail.csv')
 		except:
 			self.logger.error(self.regions[self.id]+'文件存储失败')
 
 	# 出发回调函数执行
-	def onFinish(self):
+	def onFinish(self,callback):
 		self.saveRes()
 		print('---'+self.regions[self.id]+'爬取完毕---')
 		print('---成功总数：'+str(len(self.susList))+'---')
@@ -174,7 +194,51 @@ class AbstractSpiderFrame(object):
 		print('-----------------分割线------------------')
 		self.logger.info(self.regions[self.id]+'爬取完毕')
 		self.id = self.id + 1
-		self.run()
+		callback()
+
+	# 爬取文件夹内失败的链接，爬取成功会删除fail文件
+	def reSpideFailLinks(self):
+		print('---检查文件夹内的失败文件---')
+		self.logger.info('检查文件夹内的失败文件')
+		files = os.listdir(self.dict_path)
+		self.DataStore = dict()
+		for file in files:
+			if(not re.search('_fail.csv',file)==None):
+				with open(self.dict_path + file, newline='',encoding='utf-8') as csvfile:
+					reader = csv.DictReader(csvfile)
+					for row in reader:
+						if(self.DataStore.get(row['region'])==None):
+							self.DataStore[row['region']] = {
+							'pages':[],
+							'links':[]
+							}
+							if(row['type']=='pages'):
+								self.DataStore[row['region']]['pages'] = [row['url']]
+							elif(row['type']=='links'):
+								self.DataStore[row['region']]['links'] = [row['url']]
+						else:
+							if(row['type']=='pages'):
+								self.DataStore[row['region']]['pages'].append(row['url'])
+							elif(row['type']=='links'):
+								self.DataStore[row['region']]['links'].append(row['url'])
+					csvfile.close()
+		for key in self.DataStore:
+			self.regions.append(key)
+		self.logger.info('共有'+str(len(self.regions))+'个区数据待爬')
+		self.reRun()
+
+	def reRun(self):
+		if(self.id==len(self.regions)):
+			return
+		print('---开始爬取'+self.regions[self.id]+'---')
+		self.logger.info('开始爬取'+self.regions[self.id])
+		self.preSetParms()
+		self.getLinks()
+		self.spideLinks(self.reRun)
+
+	def preSetParms(self):
+		self.pages = self.DataStore[self.regions[self.id]]['pages']
+		self.links = self.DataStore[self.regions[self.id]]['links']
 
 	def getHtml(self,url):
 		# 控制爬取速度，防止被封
