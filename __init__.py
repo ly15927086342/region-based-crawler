@@ -1,23 +1,17 @@
 #coding = 'utf-8'
 
 from chuzuSpider import *
-from queue import Queue
-import re
-import time
-import random
-import requests
+import csv
 
-def next(arr,id,field):
-	print(id,len(arr))
-	if(id == len(arr)):
-		return
-	app = chuzuSpider([arr[id]],field,3)
-	app.callback(next,arr,id+1,field)
-	app.run()
+# 线程数
+THREAD_MAX = 3
+
+# 文件夹相对路径
+DICT_PATH = './result'
 
 # 主程序入口
 if __name__ == '__main__':
-	# region = ['hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian','xinzhouqu','hannan']
-	test = ['hannan']
-	field = ['title','price','unit','type','area','direction','floor','decoration','community','subway','address','description']
-	next(test,0,field)
+	region = ['xinzhouqu','hannan','hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian']
+	field = ['title','price','unit','type','area','direction','floor','decoration','community','subway','address','bdlat','bdlng','description']
+	app = chuzuSpider(region,field,THREAD_MAX,DICT_PATH)
+	app.run()

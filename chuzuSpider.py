@@ -13,8 +13,8 @@ from spider import AbstractSpiderFrame
 继承AbstractSpiderFrame的子类，重写部分方法
 '''
 class chuzuSpider(AbstractSpiderFrame):
-	def __init__(self, regions = [], fields = [], thread_num = 3):
-		super(chuzuSpider, self).__init__(regions,fields,thread_num)
+	def __init__(self, regions = [], fields = [], thread_num = 3,dict_path = './'):
+		super(chuzuSpider, self).__init__(regions,fields,thread_num,dict_path)
 
 	# @parms{region}: self.regions[i]
 	# @return{childLink}：根据区域生成待爬取的主页链接
@@ -51,14 +51,16 @@ class chuzuSpider(AbstractSpiderFrame):
 				link = link.split('?')[0]
 				childLink.append(link)
 		except:
-			print('err: '+url)
+			pass
 		return childLink
 
 	# @parms{url}: self.links[i]
+	# @return{record}: 和self.fields顺序必须保持一致，返回一个list，该list会写入csv
 	# 详情页的爬取处理函数
 	def processLinksFunc(self,url):
 		res = self.getHtml(url)
 		soup = BeautifulSoup(res,'lxml')
+		record = []
 		try:
 			card_data = soup.find(class_='card-top')
 			title = card_data.find(class_='card-title').find('i').string.strip().replace(' ','')
@@ -82,6 +84,6 @@ class chuzuSpider(AbstractSpiderFrame):
 			bdlat = loc[1][19:-1]
 			bdlng = loc[2][19:-1]
 			record = [title,price,unit,type,area,direction,floor,decoration,community,subway,address,bdlat,bdlng,description]
-			print(record)
 		except:
-			print('err: '+url)
+			pass
+		return record
