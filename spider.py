@@ -8,12 +8,13 @@ import csv
 import logging
 import os
 import re
+from user_agent_list import USER_AGENT
 
 '''
 采用模板方法模式，构建抽象爬虫框架类
 '''
 class AbstractSpiderFrame(object):
-	def __init__(self, regions = [], fields = [], thread_num = 3, dict_path = './'):
+	def __init__(self, regions = [], fields = [], thread_num = 3, dict_path = './',timespan = 10):
 		self.id = 0
 		# regions构成entry
 		self.regions = regions
@@ -26,9 +27,7 @@ class AbstractSpiderFrame(object):
 		self.fields = fields
 		self.thread_num = thread_num
 		self.dict_path = dict_path
-		self.headers = {
-		'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
-		}
+		self.timespan = timespan
 		self.Task = Queue()
 		self.finish = False
 		# 存爬取失败的url
@@ -104,6 +103,7 @@ class AbstractSpiderFrame(object):
 		for i in range(0,self.thread_num):
 			t = threading.Thread(target=self.getLinkList)
 			t.start()
+			time.sleep(self.timespan/self.thread_num)
 
 	def processLinks(self):
 		while(not self.Task.empty()):
@@ -141,6 +141,7 @@ class AbstractSpiderFrame(object):
 		for i in range(0,self.thread_num):
 			t = threading.Thread(target=self.processLinks)
 			t.start()
+			time.sleep(self.timespan/self.thread_num)
 		while(not len(self.links) == 0):
 			pass
 		print('---spideLinks end---')
@@ -249,8 +250,10 @@ class AbstractSpiderFrame(object):
 
 	def getHtml(self,url):
 		# 控制爬取速度，防止被封
-		time.sleep(5+random.random()*5)
-		r = requests.get(url,headers=self.headers)
+		time.sleep(self.timespan)
+		r = requests.get(url,headers={
+			'User-Agent':USER_AGENT[int(random.random()*len(USER_AGENT))]
+			})
 		# print(r.apparent_encoding)
 		# r.encoding = r.apparent_encoding
 		if r.status_code == 200:

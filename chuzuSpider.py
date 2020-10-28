@@ -13,8 +13,8 @@ from spider import AbstractSpiderFrame
 继承AbstractSpiderFrame的子类，重写部分方法
 '''
 class chuzuSpider(AbstractSpiderFrame):
-	def __init__(self, regions = [], fields = [], thread_num = 3,dict_path = './'):
-		super(chuzuSpider, self).__init__(regions,fields,thread_num,dict_path)
+	def __init__(self, regions = [], fields = [], thread_num = 3,dict_path = './',timespan = 10):
+		super(chuzuSpider, self).__init__(regions,fields,thread_num,dict_path,timespan)
 
 	# @parms{region}: self.regions[i]
 	# @return{childLink}：根据区域生成待爬取的主页链接
@@ -79,7 +79,7 @@ class chuzuSpider(AbstractSpiderFrame):
 			community = list_two[0].find(class_='content').find('span').string.strip().replace(' ','')
 			subway = list_two[1].find(class_='content').string.strip().replace(' ','')
 			address = list_two[2].find(class_='content').string.strip().replace(' ','')
-			description = soup.find(class_='describe').find(class_='item').string.strip().replace(' ','')
+			description = soup.find(class_='describe').find(class_='item').get_text('|').strip().replace(' ','').split('|')[0]
 			loc = re.search(r'try{(.*?)}catch',res.replace(' ','').replace('\n','')).group(0).split(';')
 			bdlat = loc[1][19:-1]
 			bdlng = loc[2][19:-1]

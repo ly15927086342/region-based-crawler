@@ -13,8 +13,8 @@ from spider import AbstractSpiderFrame
 继承AbstractSpiderFrame的子类，重写部分方法
 '''
 class ershoufangSpider(AbstractSpiderFrame):
-	def __init__(self, regions = [], fields = [], thread_num = 3,dict_path = './'):
-		super(ershoufangSpider, self).__init__(regions,fields,thread_num,dict_path)
+	def __init__(self, regions = [], fields = [], thread_num = 3,dict_path = './',timespan = 10):
+		super(ershoufangSpider, self).__init__(regions,fields,thread_num,dict_path,timespan)
 
 	# @parms{region}: self.regions[i]
 	# @return{childLink}：根据区域生成待爬取的主页链接
