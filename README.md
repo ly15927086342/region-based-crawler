@@ -10,10 +10,10 @@
 
 ## 适用页面模式
 
+![./static/model.png](./static/model.png)
+
 ## 案例
 
-以赶集网为例，我们想要爬取赶集网中武汉市所有地区的租房信息。
+以赶集网为例，我们想要爬取赶集网中武汉市所有地区的租房信息。步骤如下：
 
-首先浏览首页[http://wh.ganji.com/zufang/](http://wh.ganji.com/zufang/)
-
-![]()
+![./static/buzhou.png](./static/buzhou.png)
