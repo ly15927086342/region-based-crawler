@@ -14,6 +14,7 @@ from user_agent_list import USER_AGENT
 采用模板方法模式，构建抽象爬虫框架类
 '''
 class AbstractSpiderFrame(object):
+
 	def __init__(self, regions = [], fields = [], thread_num = 3, dict_path = './',timespan = 10):
 		self.id = 0
 		# regions构成entry
@@ -206,6 +207,7 @@ class AbstractSpiderFrame(object):
 
 	# 爬取文件夹内失败的链接，爬取成功会删除fail文件
 	def reSpideFailLinks(self):
+		self.regions.clear()
 		print('---检查文件夹内的失败文件---')
 		self.logger.info('检查文件夹内的失败文件')
 		files = os.listdir(self.dict_path)
