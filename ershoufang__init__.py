@@ -25,9 +25,4 @@ if __name__ == '__main__':
 	app.run()
 	
 	# 对爬取失败的文件重爬，和app.run()不能顺序执行，因为两个函数都是异步函数
-	appR = chuzuSpider(regions = [],
-		fields = field,
-		thread_num = THREAD_MAX,
-		dict_path = DICT_PATH,
-		timespan = TIMESPAN)
-	appR.reSpideFailLinks()
+	# app.reSpideFailLinks()
