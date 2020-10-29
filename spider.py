@@ -20,7 +20,7 @@ class AbstractSpiderFrame(object):
 		# regions构成entry
 		self.regions = regions
 		# entry获取pages
-		self.entry = []
+		self.entry = ''
 		# pages获取links
 		self.pages = []
 		self.links = []
@@ -199,7 +199,6 @@ class AbstractSpiderFrame(object):
 	# 出发回调函数执行
 	def onFinish(self,callback):
 		self.saveRes()
-		self.entry.clear()
 		self.pages.clear()
 		self.links.clear()
 		print('---'+self.regions[self.id]+'爬取完毕---')
