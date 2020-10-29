@@ -24,6 +24,9 @@ class AbstractSpiderFrame(object):
 		# pages获取links
 		self.pages = []
 		self.links = []
+		# 存爬取失败的url
+		self.failList = []
+		self.susList = []
 		# fields表示要存入数据库的所有字段
 		self.fields = fields
 		self.thread_num = thread_num
@@ -31,9 +34,6 @@ class AbstractSpiderFrame(object):
 		self.timespan = timespan
 		self.Task = Queue()
 		self.finish = False
-		# 存爬取失败的url
-		self.failList = []
-		self.susList = []
 		self.checkParms()
 
 	def getEntryFunc(self):
@@ -181,12 +181,14 @@ class AbstractSpiderFrame(object):
 						writer_sus.writeheader()
 					writer_sus.writerows(self.susList)
 					csvfile.close()
+				self.susList.clear()
 			if(len(self.failList)>0):
 				with open(self.dict_path+self.regions[self.id]+'_fail.csv', 'w', newline='',encoding='utf-8') as failfile:
 					writer_fail = csv.DictWriter(failfile, fieldnames=['type','region','url'])
 					writer_fail.writeheader()
 					writer_fail.writerows(self.failList)
 					failfile.close()
+				self.failList.clear()
 			# failList为空，则删除fail文件
 			else:
 				if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv')):
@@ -197,6 +199,9 @@ class AbstractSpiderFrame(object):
 	# 出发回调函数执行
 	def onFinish(self,callback):
 		self.saveRes()
+		self.entry.clear()
+		self.pages.clear()
+		self.links.clear()
 		print('---'+self.regions[self.id]+'爬取完毕---')
 		print('---成功总数：'+str(len(self.susList))+'---')
 		print('---失败总数：'+str(len(self.failList))+'---')
