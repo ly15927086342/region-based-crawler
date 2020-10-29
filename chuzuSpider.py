@@ -25,22 +25,25 @@ class chuzuSpider(AbstractSpiderFrame):
 	# @return{childLink}：self.entry[i]页获取的所有列表页的链接list
 	def getPagesFunc(self,url):
 		pg = []
-		res = self.getHtml(url)
-		soup = BeautifulSoup(res,'lxml')
-		page = soup.find_all(class_='pageBox')[1]
-		a = page.find_all('a')
-		maxP = int(a[len(a)-2].find('span').string)
-		for i in range(1,maxP+1):
-			pg.append(url+'pn'+str(i)+'/')
+		try:
+			res = self.getHtml(url)
+			soup = BeautifulSoup(res,'lxml')
+			page = soup.find_all(class_='pageBox')[1]
+			a = page.find_all('a')
+			maxP = int(a[len(a)-2].find('span').string)
+			for i in range(1,maxP+1):
+				pg.append(url+'pn'+str(i)+'/')
+		except:
+			pass
 		return pg
 
 	# @parms{url}: self.pages[i]
 	# @return{childLink/False}： self.pages[i]页所有待爬页面的链接list，如果页面异常，返回False
 	def getLinkListFunc(self,url):
-		res = self.getHtml(url)
-		soup = BeautifulSoup(res,'lxml')
-		childLink = []
 		try:
+			res = self.getHtml(url)
+			soup = BeautifulSoup(res,'lxml')
+			childLink = []
 			domItem = soup.find_all(class_='ershoufang-list')
 			for dom in domItem:
 				link = dom.find(class_='title').find('a').get('href')
@@ -58,10 +61,10 @@ class chuzuSpider(AbstractSpiderFrame):
 	# @return{record}: 和self.fields顺序必须保持一致，返回一个list，该list会写入csv
 	# 详情页的爬取处理函数
 	def processLinksFunc(self,url):
-		res = self.getHtml(url)
-		soup = BeautifulSoup(res,'lxml')
 		record = []
 		try:
+			res = self.getHtml(url)
+			soup = BeautifulSoup(res,'lxml')
 			card_data = soup.find(class_='card-top')
 			title = card_data.find(class_='card-title').find('i').string.strip().replace(' ','')
 			price_warp = card_data.find(class_="price-wrap")
