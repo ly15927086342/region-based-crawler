@@ -260,3 +260,5 @@ class AbstractSpiderFrame(object):
 		# r.encoding = r.apparent_encoding
 		if r.status_code == 200:
 			return r.text
+		else:
+			return None
