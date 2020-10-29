@@ -7,7 +7,7 @@ THREAD_MAX = 3
 
 # 总时间间隔（秒）
 # 实际时间间隔为 TIMESPAN/THREAD_MAX
-TIMESPAN = 15
+TIMESPAN = 9
 
 # 文件夹相对路径
 DICT_PATH = './result_chuzu'
@@ -15,8 +15,9 @@ DICT_PATH = './result_chuzu'
 # 主程序入口
 if __name__ == '__main__':
 	# regionTotal = ['xinzhouqu','hannan','hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian']
-	region = ['hannan','hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian']
+	region = ['hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian']
 	field = ['title','price','unit','type','area','direction','floor','decoration','community','subway','address','bdlat','bdlng','description']
+	region.reverse()
 	
 	# 爬取指定区域的页面
 	app = chuzuSpider(regions = region,
