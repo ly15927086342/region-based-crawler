@@ -35,6 +35,7 @@ class AbstractSpiderFrame(object):
 		self.Task = Queue()
 		self.finish = False
 		self.checkParms()
+		self.thread_pool = []
 
 	def getEntryFunc(self):
 		raise Exception("子类未重写getEntryFunc方法")
@@ -92,7 +93,6 @@ class AbstractSpiderFrame(object):
 				self.logger.warn('fail:' + url + ';type:pages')
 			else:
 				self.links.extend(res)
-			self.pages.pop()
 
 	def getLinks(self):
 		print('---getLinks start---')
@@ -104,7 +104,15 @@ class AbstractSpiderFrame(object):
 		for i in range(0,self.thread_num):
 			t = threading.Thread(target=self.getLinkList)
 			t.start()
+			self.thread_pool.append(t)
 			time.sleep(self.timespan/self.thread_num)
+		# 阻塞线程
+		for thread in self.thread_pool:
+			thread.join()
+		self.thread_pool.clear()
+		print('---getLinks end---')
+		self.logger.info('getLinks finish')
+		print('链接总数：'+str(len(self.links)))
 
 	def processLinks(self):
 		while(not self.Task.empty()):
@@ -124,15 +132,9 @@ class AbstractSpiderFrame(object):
 				for i in range(0,len(self.fields)):
 					field[self.fields[i]] = res[i]
 				self.susList.append(field)
-			self.links.pop()
 
 	# 爬取完毕的回调
 	def spideLinks(self,callback):
-		while(not len(self.pages) == 0):
-			pass
-		print('---getLinks end---')
-		self.logger.info('getLinks finish')
-		print('链接总数：'+str(len(self.links)))
 		print('---spideLinks start---')
 		self.Task.queue.clear()
 		# links推入任务队列
@@ -142,9 +144,11 @@ class AbstractSpiderFrame(object):
 		for i in range(0,self.thread_num):
 			t = threading.Thread(target=self.processLinks)
 			t.start()
+			self.thread_pool.append(t)
 			time.sleep(self.timespan/self.thread_num)
-		while(not len(self.links) == 0):
-			pass
+		for thread in self.thread_pool:
+			thread.join()
+		self.thread_pool.clear()
 		print('---spideLinks end---')
 		self.logger.info('spideLinks finish')
 		self.onFinish(callback)
@@ -158,6 +162,9 @@ class AbstractSpiderFrame(object):
 		self.getPages()
 		self.getLinks()
 		self.spideLinks(self.run)
+		print('---'+self.regions[self.id]+'爬取完毕---')
+		self.logger.info(self.regions[self.id]+'爬取完毕')
+		print('-----------------分割线------------------')
 
 	def saveRes(self):
 		try:
@@ -181,14 +188,12 @@ class AbstractSpiderFrame(object):
 						writer_sus.writeheader()
 					writer_sus.writerows(self.susList)
 					csvfile.close()
-				self.susList.clear()
 			if(len(self.failList)>0):
 				with open(self.dict_path+self.regions[self.id]+'_fail.csv', 'w', newline='',encoding='utf-8') as failfile:
 					writer_fail = csv.DictWriter(failfile, fieldnames=['type','region','url'])
 					writer_fail.writeheader()
 					writer_fail.writerows(self.failList)
 					failfile.close()
-				self.failList.clear()
 			# failList为空，则删除fail文件
 			else:
 				if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv')):
@@ -199,13 +204,13 @@ class AbstractSpiderFrame(object):
 	# 出发回调函数执行
 	def onFinish(self,callback):
 		self.saveRes()
-		self.pages.clear()
-		self.links.clear()
-		print('---'+self.regions[self.id]+'爬取完毕---')
+		print('-----------------分割线------------------')
 		print('---成功总数：'+str(len(self.susList))+'---')
 		print('---失败总数：'+str(len(self.failList))+'---')
-		print('-----------------分割线------------------')
-		self.logger.info(self.regions[self.id]+'爬取完毕')
+		self.susList.clear()
+		self.failList.clear()
+		self.pages.clear()
+		self.links.clear()
 		self.id = self.id + 1
 		callback()
 
@@ -249,6 +254,9 @@ class AbstractSpiderFrame(object):
 		self.preSetParms()
 		self.getLinks()
 		self.spideLinks(self.reRun)
+		print('---'+self.regions[self.id]+'爬取完毕---')
+		self.logger.info(self.regions[self.id]+'爬取完毕')
+		print('-----------------分割线------------------')
 
 	def preSetParms(self):
 		self.pages = self.DataStore[self.regions[self.id]]['pages']

@@ -12,6 +12,10 @@ TIMESPAN = 12
 # 文件夹相对路径
 DICT_PATH = './result_chuzu'
 
+def run(id):
+	time.sleep(1)
+	print(id)
+
 # 主程序入口
 if __name__ == '__main__':
 	# regionTotal = ['xinzhouqu','hannan','hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian']
