@@ -19,28 +19,31 @@ class ershoufangSpider(AbstractSpiderFrame):
 	# @parms{region}: self.regions[i]
 	# @return{childLink}：根据区域生成待爬取的主页链接
 	def getEntryFunc(self,region):
-		return 'http://wh.58.com/'+region+'/zufang/'
+		return 'https://wh.58.com/'+region+'/ershoufang/'
 
 	# @parms{url}: self.entry[i]
 	# @return{childLink}：self.entry[i]页获取的所有列表页的链接list
 	def getPagesFunc(self,url):
 		pg = []
-		res = self.getHtml(url)
-		soup = BeautifulSoup(res,'lxml')
-		page = soup.find_all(class_='pager')[0]
-		a = page.find_all('a')
-		maxP = int(a[len(a)-2].find('span').string)
-		for i in range(1,maxP+1):
-			pg.append(url+'pn'+str(i)+'/')
+		try:
+			res = self.getHtml(url)
+			soup = BeautifulSoup(res,'lxml')
+			page = soup.find_all(class_='pager')[0]
+			a = page.find_all('a')
+			maxP = int(a[len(a)-2].find('span').string)
+			for i in range(1,maxP+1):
+				pg.append(url+'pn'+str(i)+'/')
+		except:
+			pass
 		return pg
 
 	# @parms{url}: self.pages[i]
 	# @return{childLink/False}： self.pages[i]页所有待爬页面的链接list，如果页面异常，返回False
 	def getLinkListFunc(self,url):
-		res = self.getHtml(url)
-		soup = BeautifulSoup(res,'lxml')
-		childLink = []
 		try:
+			res = self.getHtml(url)
+			soup = BeautifulSoup(res,'lxml')
+			childLink = []
 			domItem = soup.find(class_='house-list-wrap').find_all(class_='list-info')
 			for dom in domItem:
 				link = dom.find(class_='title').find('a').get('href')
@@ -58,32 +61,39 @@ class ershoufangSpider(AbstractSpiderFrame):
 	# @return{record}: 和self.fields顺序必须保持一致，返回一个list，该list会写入csv
 	# 详情页的爬取处理函数
 	def processLinksFunc(self,url):
-		res = self.getHtml(url)
-		soup = BeautifulSoup(res,'lxml')
 		record = []
 		try:
-			card_data = soup.find(class_='card-top')
-			title = card_data.find(class_='card-title').find('i').string.strip().replace(' ','')
-			price_warp = card_data.find(class_="price-wrap")
-			er_list = card_data.find(class_="er-list")
-			er_list_two = card_data.find(class_="er-list-two")
-			list_one = er_list.find_all(class_="f-fl")
-			list_two = er_list_two.find_all(class_="f-fl")
-			price = price_warp.find(class_="price").string.strip().replace(' ','')
-			unit = price_warp.find(class_="unit").string.strip().replace(' ','')
-			type = list_one[0].find(class_='content').string.strip().replace(' ','')
-			area = list_one[1].find(class_='content').string.strip().replace(' ','').replace('\xa0','')
-			direction = list_one[2].find(class_='content').string.strip().replace(' ','')
-			floor = list_one[3].find(class_='content').string.strip().replace(' ','')
-			decoration = list_one[4].find(class_='content').string.strip().replace(' ','')
-			community = list_two[0].find(class_='content').find('span').string.strip().replace(' ','')
-			subway = list_two[1].find(class_='content').string.strip().replace(' ','')
-			address = list_two[2].find(class_='content').string.strip().replace(' ','')
-			description = soup.find(class_='describe').find(class_='item').string.strip().replace(' ','')
-			loc = re.search(r'try{(.*?)}catch',res.replace(' ','').replace('\n','')).group(0).split(';')
-			bdlat = loc[1][19:-1]
-			bdlng = loc[2][19:-1]
-			record = [title,price,unit,type,area,direction,floor,decoration,community,subway,address,bdlat,bdlng,description]
+			res = self.getHtml(url)
+			soup = BeautifulSoup(res,'lxml')
+			title = soup.find(class_='house-title').find('h1').string.strip()
+			situation = soup.find(id='generalSituation')
+			situation_left = situation.find(class_='general-item-left').find_all('li')
+			situation_right = situation.find(class_='general-item-right').find_all('li')
+			style = situation_left[1].find_all('span')[1].string
+			toward = situation_left[3].find_all('span')[1].string
+			new = situation_left[4].find_all('span')[1].string
+			floor = situation_right[0].find_all('span')[1].string
+			decoration = situation_right[1].find_all('span')[1].string
+			expires = situation_right[2].find_all('span')[1].string
+			build_date = situation_right[3].find_all('span')[1].string
+
+			desc = soup.find(id='generalDesc').find(class_='general-pic-desc')
+			key_desc = desc[0].find(class_='pic-desc-word').get_text('|').strip().replace(' ','')
+			owner_mind = desc[1].find(class_='pic-desc-word').get_text('|').strip().replace(' ','')
+			serve_desc = desc[2].find(class_='pic-desc-word').get_text('|').strip().replace(' ','')
+
+			loc = re.search(r'____json4fe={(.*?)};',res.replace(' ','').replace('\n','')).group(0)
+			locObj = demjson.decode(loc)
+			baidulat = locObj['xiaoqu']['baidulat']
+			baidulon = locObj['xiaoqu']['baidulon']
+			lat = locObj['xiaoqu']['lat']
+			lon = locObj['xiaoqu']['lon']
+			community = locObj['xiaoqu']['name']
+			price = locObj['price']
+			area = locObj['area']
+
+			record = [url,title,price,area,style,toward,new,floor,decoration,expires,build_date,community,baidulat,baidulon,lat,lon,key_desc,owner_mind,serve_desc]
+			print(record)
 		except:
 			pass
 		return record

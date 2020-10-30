@@ -1,12 +1,14 @@
 #coding = 'utf-8'
 
 from ershoufangSpider import *
+import demjson
+import requests
 
 # 线程数
-THREAD_MAX = 3
+THREAD_MAX = 1
 
 # 时间间隔（秒）
-TIMESPAN = 15
+TIMESPAN = 4
 
 # 文件夹相对路径
 DICT_PATH = './result_ershoufang'
@@ -14,7 +16,7 @@ DICT_PATH = './result_ershoufang'
 # 主程序入口
 if __name__ == '__main__':
 	region = ['xinzhouqu','hannan','hongshan','wuchang','jiangan','hanyang','jiangxia','jianghan','dongxihu','qiaokou','huangpo','whtkfq','whqingshanqu','caidian']
-	field = ['title','price','unit','type','area','direction','floor','decoration','community','subway','address','bdlat','bdlng','description']
+	field = ['url','title','price','area','style','toward','new','floor','decoration','expires','build_date','community','baidulat','baidulon','lat','lon','key_desc','owner_mind','serve_desc']
 	
 	# 爬取指定区域的页面
 	app = ershoufangSpider(regions = region,
