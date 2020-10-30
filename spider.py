@@ -162,9 +162,6 @@ class AbstractSpiderFrame(object):
 		self.getPages()
 		self.getLinks()
 		self.spideLinks(self.run)
-		print('---'+self.regions[self.id]+'爬取完毕---')
-		self.logger.info(self.regions[self.id]+'爬取完毕')
-		print('-----------------分割线------------------')
 
 	def saveRes(self):
 		try:
@@ -212,6 +209,9 @@ class AbstractSpiderFrame(object):
 		self.pages.clear()
 		self.links.clear()
 		self.id = self.id + 1
+		print('---'+self.regions[self.id]+'爬取完毕---')
+		self.logger.info(self.regions[self.id]+'爬取完毕')
+		print('-----------------分割线------------------')
 		callback()
 
 	# 爬取文件夹内失败的链接，爬取成功会删除fail文件
@@ -254,9 +254,6 @@ class AbstractSpiderFrame(object):
 		self.preSetParms()
 		self.getLinks()
 		self.spideLinks(self.reRun)
-		print('---'+self.regions[self.id]+'爬取完毕---')
-		self.logger.info(self.regions[self.id]+'爬取完毕')
-		print('-----------------分割线------------------')
 
 	def preSetParms(self):
 		self.pages = self.DataStore[self.regions[self.id]]['pages']
