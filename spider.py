@@ -95,7 +95,7 @@ class AbstractSpiderFrame(object):
 					})
 				self.logger.warn('fail:' + url + ';type:pages')
 				self.alert = self.alert + 1
-				if(self.alert>=MAX_ALERT_NUM):
+				if(self.alert>=self.MAX_ALERT_NUM):
 					self.logger.warn('反爬机制生效，请手动解决问题')
 					exit(1)
 			else:
@@ -135,7 +135,7 @@ class AbstractSpiderFrame(object):
 				print('fail:'+url)
 				self.logger.warn('fail:' + url + ';type:links')
 				self.alert = self.alert + 1
-				if(self.alert>=MAX_ALERT_NUM):
+				if(self.alert>=self.MAX_ALERT_NUM):
 					self.logger.warn('反爬机制生效，请手动解决问题')
 					exit(1)
 			else:
