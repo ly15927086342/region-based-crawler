@@ -36,6 +36,9 @@ class AbstractSpiderFrame(object):
 		self.finish = False
 		self.checkParms()
 		self.thread_pool = []
+		self.MAX_ALERT_NUM = 10
+		# 用于failList连续增加MAX_ALERT_NUM个则认为是被检测出异常，需要直接退出程序
+		self.alert = 0
 
 	def getEntryFunc(self):
 		raise Exception("子类未重写getEntryFunc方法")
@@ -91,7 +94,12 @@ class AbstractSpiderFrame(object):
 					'url':url
 					})
 				self.logger.warn('fail:' + url + ';type:pages')
+				self.alert = self.alert + 1
+				if(self.alert>=MAX_ALERT_NUM):
+					self.logger.warn('反爬机制生效，请手动解决问题')
+					exit(1)
 			else:
+				self.alert = 0
 				self.links.extend(res)
 
 	def getLinks(self):
@@ -126,7 +134,12 @@ class AbstractSpiderFrame(object):
 					})
 				print('fail:'+url)
 				self.logger.warn('fail:' + url + ';type:links')
+				self.alert = self.alert + 1
+				if(self.alert>=MAX_ALERT_NUM):
+					self.logger.warn('反爬机制生效，请手动解决问题')
+					exit(1)
 			else:
+				self.alert = 0
 				print('sus:'+url)
 				field = dict()
 				for i in range(0,len(self.fields)):
@@ -208,10 +221,10 @@ class AbstractSpiderFrame(object):
 		self.failList.clear()
 		self.pages.clear()
 		self.links.clear()
-		self.id = self.id + 1
 		print('---'+self.regions[self.id]+'爬取完毕---')
 		self.logger.info(self.regions[self.id]+'爬取完毕')
 		print('-----------------分割线------------------')
+		self.id = self.id + 1
 		callback()
 
 	# 爬取文件夹内失败的链接，爬取成功会删除fail文件
@@ -261,13 +274,13 @@ class AbstractSpiderFrame(object):
 
 	def getHtml(self,url):
 		# 控制爬取速度，防止被封
-		time.sleep(self.timespan)
+		time.sleep(self.timespan+random.random()*2)
 		r = requests.get(url,headers={
-			'User-Agent':USER_AGENT[int(random.random()*len(USER_AGENT))]
+			'User-Agent':random.choice(USER_AGENT)
 			})
 		# print(r.apparent_encoding)
 		# r.encoding = r.apparent_encoding
 		if r.status_code == 200:
-			return r.text
+			return r.text.replace(u'\xa0', u' ')
 		else:
 			return None
