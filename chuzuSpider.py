@@ -66,26 +66,26 @@ class chuzuSpider(AbstractSpiderFrame):
 			res = self.getHtml(url)
 			soup = BeautifulSoup(res,'lxml')
 			card_data = soup.find(class_='card-top')
-			title = card_data.find(class_='card-title').find('i').string.strip().replace(' ','')
+			title = card_data.find(class_='card-title').find('i').get_text().strip().replace(' ','')
 			price_warp = card_data.find(class_="price-wrap")
 			er_list = card_data.find(class_="er-list")
 			er_list_two = card_data.find(class_="er-list-two")
 			list_one = er_list.find_all(class_="f-fl")
 			list_two = er_list_two.find_all(class_="f-fl")
-			price = price_warp.find(class_="price").string.strip().replace(' ','')
-			unit = price_warp.find(class_="unit").string.strip().replace(' ','')
-			type = list_one[0].find(class_='content').string.strip().replace(' ','')
-			area = list_one[1].find(class_='content').string.strip().replace(' ','').replace('\xa0','')
-			direction = list_one[2].find(class_='content').string.strip().replace(' ','')
-			floor = list_one[3].find(class_='content').string.strip().replace(' ','')
-			decoration = list_one[4].find(class_='content').string.strip().replace(' ','')
-			community = list_two[0].find(class_='content').find('span').string.strip().replace(' ','')
-			subway = list_two[1].find(class_='content').string.strip().replace(' ','')
-			address = list_two[2].find(class_='content').string.strip().replace(' ','')
+			price = price_warp.find(class_="price").get_text().strip().replace(' ','')
+			unit = price_warp.find(class_="unit").get_text().strip().replace(' ','')
+			type = list_one[0].find(class_='content').get_text().strip().replace(' ','')
+			area = list_one[1].find(class_='content').get_text().strip().replace(' ','')
+			direction = list_one[2].find(class_='content').get_text().strip().replace(' ','')
+			floor = list_one[3].find(class_='content').get_text().strip().replace(' ','')
+			decoration = list_one[4].find(class_='content').get_text().strip().replace(' ','')
+			community = list_two[0].find(class_='content').find('span').get_text().strip().replace(' ','')
+			subway = list_two[1].find(class_='content').get_text().strip().replace(' ','')
+			address = list_two[2].find(class_='content').get_text().strip().replace(' ','')
 			description = soup.find(class_='describe').find(class_='item').get_text('|').strip().replace(' ','').split('|')[0]
 			loc = re.search(r'try{(.*?)}catch',res.replace(' ','').replace('\n','')).group(0).split(';')
 			bdlat = loc[1][19:-1]
-			bdlng = loc[2][19:-1]
+			bdlng = loc[2][19:-1]	
 			record = [title,price,unit,type,area,direction,floor,decoration,community,subway,address,bdlat,bdlng,description]
 		except:
 			pass

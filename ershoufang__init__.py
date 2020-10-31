@@ -3,12 +3,17 @@
 from ershoufangSpider import *
 import demjson
 import requests
+import random
+from user_agent_list import USER_AGENT
+from lxml import etree
+from bs4 import BeautifulSoup
+import re
 
 # 线程数
-THREAD_MAX = 1
+THREAD_MAX = 3
 
 # 时间间隔（秒）
-TIMESPAN = 4
+TIMESPAN = 18
 
 # 文件夹相对路径
 DICT_PATH = './result_ershoufang'

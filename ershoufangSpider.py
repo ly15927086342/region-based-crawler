@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 import math
 import sqlite3
 import re
+import demjson
 from spider import AbstractSpiderFrame
 
 '''
@@ -65,24 +66,22 @@ class ershoufangSpider(AbstractSpiderFrame):
 		try:
 			res = self.getHtml(url)
 			soup = BeautifulSoup(res,'lxml')
-			title = soup.find(class_='house-title').find('h1').string.strip()
+			title = soup.find(class_='house-title').find('h1').get_text().strip()
 			situation = soup.find(id='generalSituation')
 			situation_left = situation.find(class_='general-item-left').find_all('li')
 			situation_right = situation.find(class_='general-item-right').find_all('li')
-			style = situation_left[1].find_all('span')[1].string
-			toward = situation_left[3].find_all('span')[1].string
-			new = situation_left[4].find_all('span')[1].string
-			floor = situation_right[0].find_all('span')[1].string
-			decoration = situation_right[1].find_all('span')[1].string
-			expires = situation_right[2].find_all('span')[1].string
-			build_date = situation_right[3].find_all('span')[1].string
-
-			desc = soup.find(id='generalDesc').find(class_='general-pic-desc')
-			key_desc = desc[0].find(class_='pic-desc-word').get_text('|').strip().replace(' ','')
-			owner_mind = desc[1].find(class_='pic-desc-word').get_text('|').strip().replace(' ','')
-			serve_desc = desc[2].find(class_='pic-desc-word').get_text('|').strip().replace(' ','')
-
-			loc = re.search(r'____json4fe={(.*?)};',res.replace(' ','').replace('\n','')).group(0)
+			style = situation_left[1].find_all('span')[1].get_text()
+			toward = situation_left[3].find_all('span')[1].get_text()
+			new = situation_left[4].find_all('span')[1].get_text().strip()
+			floor = situation_right[0].find_all('span')[1].get_text()
+			decoration = situation_right[1].find_all('span')[1].get_text()
+			expires = situation_right[2].find_all('span')[1].get_text()
+			build_date = situation_right[3].find_all('span')[1].get_text()
+			desc = soup.find(id='generalDesc').find_all(class_='genaral-pic-desc')
+			key_desc = desc[0].find(class_='pic-desc-word').get_text('|').strip().replace(' ','').replace('\n','')
+			owner_mind = desc[1].find(class_='pic-desc-word').get_text('|').strip().replace(' ','').replace('\n','')
+			serve_desc = desc[2].find(class_='pic-desc-word').get_text('|').strip().replace(' ','').replace('\n','')
+			loc = re.search(r'____json4fe={(.*?)};',res.replace(' ','').replace('\n','')).group(0)[12:-1]
 			locObj = demjson.decode(loc)
 			baidulat = locObj['xiaoqu']['baidulat']
 			baidulon = locObj['xiaoqu']['baidulon']
@@ -91,9 +90,7 @@ class ershoufangSpider(AbstractSpiderFrame):
 			community = locObj['xiaoqu']['name']
 			price = locObj['price']
 			area = locObj['area']
-
 			record = [url,title,price,area,style,toward,new,floor,decoration,expires,build_date,community,baidulat,baidulon,lat,lon,key_desc,owner_mind,serve_desc]
-			print(record)
 		except:
 			pass
 		return record
