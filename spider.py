@@ -4,10 +4,10 @@ import time
 import random
 import threading
 from queue import Queue
-import csv
 import logging
 import os
 import re
+from csvIO import CsvIO
 from user_agent_list import USER_AGENT
 
 '''
@@ -95,9 +95,8 @@ class AbstractSpiderFrame(object):
 					})
 				self.logger.warn('fail:' + url + ';type:pages')
 				self.alert = self.alert + 1
-				if(self.alert>=self.MAX_ALERT_NUM):
-					self.logger.warn('反爬机制生效，请手动解决问题')
-					exit(1)
+				if(self.alert >= self.MAX_ALERT_NUM):
+					self.logger.warn('反爬机制可能生效，请手动解决问题')
 			else:
 				self.alert = 0
 				self.links.extend(res)
@@ -132,19 +131,18 @@ class AbstractSpiderFrame(object):
 					'region':self.regions[self.id],
 					'url':url
 					})
-				print('fail:'+url)
+				print(str(len(self.failList)+len(self.susList))+'fail:'+url)
 				self.logger.warn('fail:' + url + ';type:links')
 				self.alert = self.alert + 1
-				if(self.alert>=self.MAX_ALERT_NUM):
-					self.logger.warn('反爬机制生效，请手动解决问题')
-					exit(1)
+				if(self.alert >= self.MAX_ALERT_NUM):
+					self.logger.warn('反爬机制可能生效，请手动解决问题')
 			else:
 				self.alert = 0
-				print('sus:'+url)
 				field = dict()
 				for i in range(0,len(self.fields)):
 					field[self.fields[i]] = res[i]
 				self.susList.append(field)
+				print(str(len(self.failList)+len(self.susList))+'sus:'+url)
 
 	# 爬取完毕的回调
 	def spideLinks(self,callback):
@@ -167,48 +165,41 @@ class AbstractSpiderFrame(object):
 		self.onFinish(callback)
 
 	def run(self):
-		if(self.id==len(self.regions)):
-			return
-		print('---开始爬取'+self.regions[self.id]+'---')
-		self.logger.info('开始爬取'+self.regions[self.id])
-		self.getEntry()
-		self.getPages()
-		self.getLinks()
-		self.spideLinks(self.run)
+		# 按区爬取所有待爬链接，存入fail文件
+		for id in range(0,len(self.regions)):
+			self.id = id
+			print('---开始爬取'+self.regions[self.id]+'---')
+			self.logger.info('开始爬取'+self.regions[self.id])
+			# 已存在fail文件则跳过
+			if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv')):
+				continue
+			self.getEntry()
+			self.getPages()
+			self.getLinks()
+			for link in self.links:
+				self.failList.append({
+					'type':'links',
+					'region':self.regions[self.id],
+					'url':link
+					})
+			CsvIO().writeRows(self.dict_path+self.regions[self.id]+'_fail.csv',['type','region','url'],self.failList)
+			self.susList.clear()
+			self.failList.clear()
+			self.pages.clear()
+			self.links.clear()
+		self.reSpideFailLinks()
 
 	def saveRes(self):
-		try:
-			if(len(self.susList)>0):
-				hasHead = False
-				# 行数为0或报错表示无头部，需要写头
-				try:
-					with open(self.dict_path+self.regions[self.id]+'_result.csv', 'r', newline='',encoding='utf-8') as csvfile:
-						reader = csv.reader(csvfile)
-						length = 0
-						for row in reader:
-							length = length + 1
-						if(length>0):
-							hasHead = True
-						csvfile.close()
-				except:
-					pass
-				with open(self.dict_path+self.regions[self.id]+'_result.csv', 'a', newline='',encoding='utf-8') as csvfile:
-					writer_sus = csv.DictWriter(csvfile, fieldnames=self.fields)
-					if(not hasHead):
-						writer_sus.writeheader()
-					writer_sus.writerows(self.susList)
-					csvfile.close()
-			if(len(self.failList)>0):
-				with open(self.dict_path+self.regions[self.id]+'_fail.csv', 'w', newline='',encoding='utf-8') as failfile:
-					writer_fail = csv.DictWriter(failfile, fieldnames=['type','region','url'])
-					writer_fail.writeheader()
-					writer_fail.writerows(self.failList)
-					failfile.close()
-			# failList为空，则删除fail文件
-			else:
-				if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv')):
-					os.remove(self.dict_path+self.regions[self.id]+'_fail.csv')
-		except:
+		res = True
+		if(len(self.susList)>0):
+			res = res and CsvIO().appendRows(self.dict_path+self.regions[self.id]+'_result.csv',self.fields,self.susList)
+		if(len(self.failList)>0):
+			res = res and CsvIO().writeRows(self.dict_path+self.regions[self.id]+'_fail.csv',['type','region','url'],self.failList)
+		# failList为空，则删除fail文件
+		else:
+			if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv')):
+				os.remove(self.dict_path+self.regions[self.id]+'_fail.csv')
+		if(res == False):
 			self.logger.error(self.regions[self.id]+'文件存储失败')
 
 	# 出发回调函数执行
@@ -236,24 +227,25 @@ class AbstractSpiderFrame(object):
 		self.DataStore = dict()
 		for file in files:
 			if(not re.search('_fail.csv',file)==None):
-				with open(self.dict_path + file, newline='',encoding='utf-8') as csvfile:
-					reader = csv.DictReader(csvfile)
-					for row in reader:
-						if(self.DataStore.get(row['region'])==None):
-							self.DataStore[row['region']] = {
-							'pages':[],
-							'links':[]
-							}
-							if(row['type']=='pages'):
-								self.DataStore[row['region']]['pages'] = [row['url']]
-							elif(row['type']=='links'):
-								self.DataStore[row['region']]['links'] = [row['url']]
-						else:
-							if(row['type']=='pages'):
-								self.DataStore[row['region']]['pages'].append(row['url'])
-							elif(row['type']=='links'):
-								self.DataStore[row['region']]['links'].append(row['url'])
-					csvfile.close()
+				reader = CsvIO().readRows(self.dict_path + file)
+				if(reader == False):
+					self.logger.info('文件读取失败')
+					exit()
+				for row in reader:
+					if(self.DataStore.get(row['region'])==None):
+						self.DataStore[row['region']] = {
+						'pages':[],
+						'links':[]
+						}
+						if(row['type']=='pages'):
+							self.DataStore[row['region']]['pages'] = [row['url']]
+						elif(row['type']=='links'):
+							self.DataStore[row['region']]['links'] = [row['url']]
+					else:
+						if(row['type']=='pages'):
+							self.DataStore[row['region']]['pages'].append(row['url'])
+						elif(row['type']=='links'):
+							self.DataStore[row['region']]['links'].append(row['url'])
 		for key in self.DataStore:
 			self.regions.append(key)
 		self.logger.info('共有'+str(len(self.regions))+'个区数据待爬')
@@ -274,8 +266,8 @@ class AbstractSpiderFrame(object):
 
 	def getHtml(self,url):
 		# 控制爬取速度，防止被封
-		time.sleep(self.timespan+random.random()*2)
-		r = requests.get(url,headers={
+		time.sleep(self.timespan+random.random()*self.timespan/5)
+		r = requests.get(url,timeout=10,headers={
 			'User-Agent':random.choice(USER_AGENT)
 			})
 		# print(r.apparent_encoding)
