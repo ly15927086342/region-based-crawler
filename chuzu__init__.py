@@ -28,8 +28,4 @@ if __name__ == '__main__':
 		thread_num = THREAD_MAX,
 		dict_path = DICT_PATH,
 		timespan = TIMESPAN)
-	# 爬取指定区域的页面
-	# app.run()
-	
-	# 对爬取失败的文件重爬，和app.run()不能顺序执行，因为两个函数都是异步函数
-	app.reSpideFailLinks()
+	app.run()
