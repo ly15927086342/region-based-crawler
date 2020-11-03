@@ -37,7 +37,7 @@ class  CsvIO(object):
 
 	def appendRow(self,filename,fields,data):
 		try:
-			hasHead = self.hasField(filename,fields)
+			hasHead = self.hasField(filename)
 			with open(filename, 'a', newline='',encoding='utf-8') as csvfile:
 				writer = csv.DictWriter(csvfile, fieldnames=fields)
 				if(not hasHead):
@@ -50,7 +50,7 @@ class  CsvIO(object):
 
 	def appendRows(self,filename,fields,data):
 		try:
-			hasHead = self.hasField(filename,fields)
+			hasHead = self.hasField(filename)
 			with open(filename, 'a', newline='',encoding='utf-8') as csvfile:
 				writer = csv.DictWriter(csvfile, fieldnames=fields)
 				if(not hasHead):
