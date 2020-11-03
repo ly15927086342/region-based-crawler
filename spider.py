@@ -97,6 +97,7 @@ class AbstractSpiderFrame(object):
 				self.alert = self.alert + 1
 				if(self.alert >= self.MAX_ALERT_NUM):
 					self.logger.warn('反爬机制可能生效，请手动解决问题')
+					print('反爬机制可能生效，请手动解决问题')
 			else:
 				self.alert = 0
 				self.links.extend(res)
@@ -131,18 +132,19 @@ class AbstractSpiderFrame(object):
 					'region':self.regions[self.id],
 					'url':url
 					})
-				print(str(len(self.failList)+len(self.susList))+'fail:'+url)
+				print('['+str(len(self.failList)+len(self.susList))+']'+'fail:'+url)
 				self.logger.warn('fail:' + url + ';type:links')
 				self.alert = self.alert + 1
 				if(self.alert >= self.MAX_ALERT_NUM):
 					self.logger.warn('反爬机制可能生效，请手动解决问题')
+					print('反爬机制可能生效，请手动解决问题')
 			else:
 				self.alert = 0
 				field = dict()
 				for i in range(0,len(self.fields)):
 					field[self.fields[i]] = res[i]
 				self.susList.append(field)
-				print(str(len(self.failList)+len(self.susList))+'sus:'+url)
+				print('['+str(len(self.failList)+len(self.susList))+']'+'sus:'+url)
 
 	# 爬取完毕的回调
 	def spideLinks(self,callback):
@@ -170,8 +172,8 @@ class AbstractSpiderFrame(object):
 			self.id = id
 			print('---开始爬取'+self.regions[self.id]+'---')
 			self.logger.info('开始爬取'+self.regions[self.id])
-			# 已存在fail文件则跳过
-			if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv')):
+			# 已存在fail文件或已存在result文件则跳过
+			if(os.path.exists(self.dict_path+self.regions[self.id]+'_fail.csv') or os.path.exists(self.dict_path+self.regions[self.id]+'_result.csv')):
 				continue
 			self.getEntry()
 			self.getPages()
@@ -220,6 +222,7 @@ class AbstractSpiderFrame(object):
 
 	# 爬取文件夹内失败的链接，爬取成功会删除fail文件
 	def reSpideFailLinks(self):
+		self.id = 0
 		self.regions.clear()
 		print('---检查文件夹内的失败文件---')
 		self.logger.info('检查文件夹内的失败文件')
