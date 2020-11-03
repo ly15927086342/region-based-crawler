@@ -184,7 +184,8 @@ class AbstractSpiderFrame(object):
 					'region':self.regions[self.id],
 					'url':link
 					})
-			CsvIO().writeRows(self.dict_path+self.regions[self.id]+'_fail.csv',['type','region','url'],self.failList)
+			if(len(self.failList)>0):
+				CsvIO().writeRows(self.dict_path+self.regions[self.id]+'_fail.csv',['type','region','url'],self.failList)
 			self.susList.clear()
 			self.failList.clear()
 			self.pages.clear()
