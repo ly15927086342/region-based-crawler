@@ -80,12 +80,13 @@ _需要注意的是，_fail.csv文件中的链接可能是本身就失效的链�
 <a id="%E5%AD%90%E7%B1%BB%E6%96%87%E4%BB%B6%EF%BC%88%E4%BB%A5chuzuspiderpy%E4%B8%BA%E4%BE%8B%EF%BC%89"></a>
 #### 子类文件（以chuzuSpider.py为例）
 
-该子类有四个方法需要重写，分别是：
+该子类有五个方法需要重写，分别是：
 
 1. getEntryFunc
 2. getPagesFunc
 3. getLinkListFunc
 4. processLinksFunc
+5. urlIsVaild
 
 >getEntryFunc
 
@@ -132,6 +133,18 @@ _注意：这里之所以返回False，而不是返回[]，是因为有些分页
 # 示例
 url = 'http://wh.ganji.com/zufang/43817179368486x.shtml'
 output = ['无中介白沙洲黄家湖武汉工商学院旁胜利丰园精装三室两厅','1100 元/月','3室2厅2卫','整租120㎡',...]
+```
+
+>urlIsVaild
+
+该函数输入待爬url，输出布尔值，如果该链接有效，则输出True，否则输出False
+
+该函数的作用是提前设定一些规则，判定链接是否有效，比如根据链接的长度（如赶集网的无效链接长度是25，正常链接是23），因此可以根据链接长度判断是否有效，若有效，则正常爬取，否则直接跳过，且不写入fail文件，以免反复爬取无效链接，无法跳出。
+
+```python
+# 示例
+url_vaild = 'https://wh.58.com/ershoufang/44045796114448x.shtml'
+url_invaild = 'https://wh.58.com/ershoufang/1577597707346950x.shtml'
 ```
 
 另外，子类名可自定义。
