@@ -52,6 +52,9 @@ class AbstractSpiderFrame(object):
 	def processLinksFunc(self):
 		raise Exception("子类未重写processLinksFunc方法")
 
+	def urlIsVaild(self):
+		raise Exception("子类未重写urlIdValid方法")
+
 	# 检查线程数和文件夹路径参数
 	def checkParms(self):
 		if(self.thread_num > 5):
@@ -121,10 +124,23 @@ class AbstractSpiderFrame(object):
 		print('---getLinks end---')
 		self.logger.info('getLinks finish')
 		print('链接总数：'+str(len(self.links)))
+		# 把所有链接先写入fail文件
+		cur_list = self.failList + []
+		for link in self.links:
+			cur_list.append({
+				'type':'links',
+				'region':self.regions[self.id],
+				'url':link
+				})
+		if(len(cur_list)>0):
+			CsvIO().writeRows(self.dict_path+self.regions[self.id]+'_fail.csv',['type','region','url'],cur_list)
 
 	def processLinks(self):
 		while(not self.Task.empty()):
 			url = self.Task.get()
+			# 链接无效则直接跳过
+			if(not self.urlIsVaild(url)):
+				continue
 			res = self.processLinksFunc(url)
 			if(len(res)==0):
 				self.failList.append({
@@ -178,14 +194,6 @@ class AbstractSpiderFrame(object):
 			self.getEntry()
 			self.getPages()
 			self.getLinks()
-			for link in self.links:
-				self.failList.append({
-					'type':'links',
-					'region':self.regions[self.id],
-					'url':link
-					})
-			if(len(self.failList)>0):
-				CsvIO().writeRows(self.dict_path+self.regions[self.id]+'_fail.csv',['type','region','url'],self.failList)
 			self.susList.clear()
 			self.failList.clear()
 			self.pages.clear()
