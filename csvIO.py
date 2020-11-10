@@ -1,7 +1,6 @@
 #coding = 'utf-8'
 
 import csv
-import logging
 import os
 
 '''
@@ -19,20 +18,19 @@ class  CsvIO(object):
 	def __init__(self):
 		super(CsvIO, self).__init__()
 
-	def hasField(self,filename):
-		hasHead = False
-		# 行数为0或报错表示无头部，需要写头
+	def getField(self,filename):
+		fields = None
 		try:
 			with open(filename, 'r', newline='',encoding='utf-8') as csvfile:
-				reader = csv.reader(csvfile)
-				length = 0
-				for row in reader:
-					length = length + 1
-				if(length > 0):
-					hasHead = True
+				reader = csv.DictReader(csvfile)
+				fields = reader.fieldnames
 				csvfile.close()
 		except:
 			pass
+		return fields
+
+	def hasField(self,filename):
+		hasHead = False if self.getField(filename) == None else True
 		return hasHead
 
 	def appendRow(self,filename,fields,data):
