@@ -1,6 +1,8 @@
-# tinySpider
+# region-based-crawler
 
 这是一款只需要具备简单的静态页面解析能力，就可以多线程爬取所需数据并存入CSV文件的通用型脚本框架。基于`模板方法设计模式`，将爬虫通用框架抽象为AbstractSpiderFrame类，你只需要修改继承该父类的具体子类，以此实现不同页面的解析脚本。
+
+相关博文见：[https://blog.csdn.net/lyandgh/article/details/109599132](https://blog.csdn.net/lyandgh/article/details/109599132)
 
 <!-- MarkdownTOC autolink='true' autoanchor='true' -->
 
@@ -152,7 +154,7 @@ url_invaild = 'https://wh.58.com/ershoufang/1577597707346950x.shtml'
 <a id="%E5%AE%B9%E9%94%99%E6%9C%BA%E5%88%B6"></a>
 ## 容错机制
 
-爬虫必然存在漏爬或解析错误的问题。tinySpider对漏爬或未成功的链接采取存入csv文件的措施，因为这样更可控。另外，目标文件夹下的日志文件（log.txt），也可以帮助你定位一些失败原因。但是日志仅限spider.py文件，也就是说如果子类中的错误不会记录在日志文件中。当然你也可以往子类引入日志文件，但前提要保证四个重写的函数的输入和输出不受影响。
+爬虫必然存在漏爬或解析错误的问题。region-based-crawler对漏爬或未成功的链接采取存入csv文件的措施，因为这样更可控。另外，目标文件夹下的日志文件（log.txt），也可以帮助你定位一些失败原因。但是日志仅限spider.py文件，也就是说如果子类中的错误不会记录在日志文件中。当然你也可以往子类引入日志文件，但前提要保证四个重写的函数的输入和输出不受影响。
 
 当一个区域的所有链接爬取结束，会输出两种文件，'区域名\_result.csv'和'区域名\_fail.csv'。其中爬取失败的链接会以`type,region,url`的格式记录到fail.csv中，该文件无需用户手动修改。
 
@@ -170,4 +172,4 @@ url_invaild = 'https://wh.58.com/ershoufang/1577597707346950x.shtml'
 
 **特别提醒**：请严格遵守网站根目录下的robots.txt协议，如果有很强的需求，请设定较长的时间间隔，如30秒。
 
-tinySpider遵循GPL-3.0开源协议，本人对任何人使用该爬虫代码产生的任何后果都不会负责。
+region-based-crawler遵循GPL-3.0开源协议，本人对任何人使用该爬虫代码产生的任何后果都不会负责。
