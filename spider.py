@@ -40,19 +40,19 @@ class AbstractSpiderFrame(object):
 		# 用于failList连续增加MAX_ALERT_NUM个则认为是被检测出异常，需要直接退出程序
 		self.alert = 0
 
-	def getEntryFunc(self):
+	def getEntryFunc(self,region):
 		raise Exception("子类未重写getEntryFunc方法")
 
 	def getPagesFunc(self,url):
 		raise Exception("子类未重写getPagesFunc方法")
 
-	def getLinkListFunc(self):
+	def getLinkListFunc(self,url):
 		raise Exception("子类未重写getLinkListFunc方法")
 
-	def processLinksFunc(self):
+	def processLinksFunc(self,url):
 		raise Exception("子类未重写processLinksFunc方法")
 
-	def urlIsVaild(self):
+	def urlIsVaild(self,url):
 		raise Exception("子类未重写urlIdValid方法")
 
 	# 检查线程数和文件夹路径参数
