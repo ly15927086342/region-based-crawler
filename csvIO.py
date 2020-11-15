@@ -1,4 +1,4 @@
-#coding = 'utf-8'
+#coding = 'utf-8-sig'
 
 import csv
 import os
@@ -21,7 +21,7 @@ class  CsvIO(object):
 	def getField(self,filename):
 		fields = None
 		try:
-			with open(filename, 'r', newline='',encoding='utf-8') as csvfile:
+			with open(filename, 'r', newline='',encoding='utf-8-sig') as csvfile:
 				reader = csv.DictReader(csvfile)
 				fields = reader.fieldnames
 				csvfile.close()
@@ -36,7 +36,7 @@ class  CsvIO(object):
 	def appendRow(self,filename,fields,data):
 		try:
 			hasHead = self.hasField(filename)
-			with open(filename, 'a', newline='',encoding='utf-8') as csvfile:
+			with open(filename, 'a', newline='',encoding='utf-8-sig') as csvfile:
 				writer = csv.DictWriter(csvfile, fieldnames=fields)
 				if(not hasHead):
 					writer.writeheader()
@@ -49,7 +49,7 @@ class  CsvIO(object):
 	def appendRows(self,filename,fields,data):
 		try:
 			hasHead = self.hasField(filename)
-			with open(filename, 'a', newline='',encoding='utf-8') as csvfile:
+			with open(filename, 'a', newline='',encoding='utf-8-sig') as csvfile:
 				writer = csv.DictWriter(csvfile, fieldnames=fields)
 				if(not hasHead):
 					writer.writeheader()
@@ -62,7 +62,7 @@ class  CsvIO(object):
 	def readRows(self,filename):
 		res = []
 		try:
-			with open(filename, newline='',encoding='utf-8') as csvfile:
+			with open(filename, newline='',encoding='utf-8-sig') as csvfile:
 				reader = csv.DictReader(csvfile)
 				for row in reader:
 					res.append(row)
@@ -73,7 +73,7 @@ class  CsvIO(object):
 
 	def writeRows(self,filename,fields,data):
 		try:
-			with open(filename, 'w', newline='',encoding='utf-8') as csvfile:
+			with open(filename, 'w', newline='',encoding='utf-8-sig') as csvfile:
 				writer = csv.DictWriter(csvfile, fieldnames=fields)
 				writer.writeheader()
 				writer.writerows(data)
