@@ -90,3 +90,12 @@ class chuzuSpider(AbstractSpiderFrame):
 		except:
 			pass
 		return record
+
+	# @parms{url}: self.links[i]
+	# @return{True or False}:提供一些可以直接判断链接是否有效的条件，无效链接不会写入fail文件
+	# 如果没有可以判断的条件，则直接返回True，所有url都认为是有效的
+	def urlIsVaild(self,url):
+		if(len(url.split('https://hz.ganji.com/zufang/')[1]) == 23):
+			return False
+		else:
+			return True
